@@ -25,31 +25,6 @@ A production-ready RESTful API for managing tasks with JWT authentication stored
 - **django-filter**: Advanced filtering
 - **SQLite**: Database (easily switchable to PostgreSQL)
 
-## Project Structure
-
-```
-dj-jwt/
-├── simplejwt/              # Django project configuration
-│   ├── settings.py         # Project settings with cookie JWT config
-│   ├── urls.py             # Root URL configuration
-│   ├── wsgi.py             # WSGI configuration
-│   └── asgi.py             # ASGI configuration
-├── app/                    # Task tracker application
-│   ├── models.py           # Task model
-│   ├── views.py            # ViewSets and auth views
-│   ├── serializers.py      # DRF serializers
-│   ├── permissions.py      # Custom permissions
-│   ├── filters.py          # Task filters
-│   ├── authentication.py   # Cookie-based JWT authentication
-│   ├── admin.py            # Admin configuration
-│   ├── urls.py             # App URL patterns
-│   └── tests.py            # Test suite (33 tests)
-├── manage.py               # Django management script
-├── requirements.txt        # Python dependencies
-├── LICENSE                 # MIT License
-└── README.md               # This file
-```
-
 ## Installation
 
 ### Prerequisites
@@ -61,8 +36,8 @@ dj-jwt/
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd dj-jwt
+   git clone https://github.com/kunalsinghdadhwal/dj-track
+   cd dj-track
    ```
 
 2. **Create a virtual environment**
@@ -131,168 +106,6 @@ dj-jwt/
 | GET | `/api/docs/swagger/` | Swagger UI |
 | GET | `/api/docs/redoc/` | ReDoc |
 
-## Usage Examples
-
-### Register a New User
-
-```bash
-curl -X POST http://localhost:8000/api/auth/register/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "johndoe",
-    "email": "john@example.com",
-    "password": "SecurePass123!",
-    "password_confirm": "SecurePass123!"
-  }'
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "username": "johndoe",
-  "email": "john@example.com",
-  "date_joined": "2025-01-15T10:30:00Z"
-}
-```
-
-### Login with Email
-
-```bash
-curl -X POST http://localhost:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -c cookies.txt \
-  -d '{
-    "email": "john@example.com",
-    "password": "SecurePass123!"
-  }'
-```
-
-**Response:**
-```json
-{
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "username": "johndoe",
-    "email": "john@example.com",
-    "date_joined": "2025-01-15T10:30:00Z"
-  },
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-```
-
-**Cookies set:**
-- `access_token` (HTTP-only, 30 min)
-- `refresh_token` (HTTP-only, 7 days)
-
-### Create a Task (Using Cookies)
-
-```bash
-curl -X POST http://localhost:8000/api/tasks/ \
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{
-    "title": "Complete project documentation",
-    "description": "Write comprehensive API documentation",
-    "priority": "high",
-    "due_date": "2025-02-01"
-  }'
-```
-
-### Create a Task (Using Bearer Token)
-
-```bash
-curl -X POST http://localhost:8000/api/tasks/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your_access_token>" \
-  -d '{
-    "title": "Complete project documentation",
-    "description": "Write comprehensive API documentation",
-    "priority": "high",
-    "due_date": "2025-02-01"
-  }'
-```
-
-### List Tasks with Filtering
-
-```bash
-# Filter by status
-curl -X GET "http://localhost:8000/api/tasks/?status=todo" \
-  -b cookies.txt
-
-# Filter by priority
-curl -X GET "http://localhost:8000/api/tasks/?priority=high" \
-  -b cookies.txt
-
-# Search by title/description
-curl -X GET "http://localhost:8000/api/tasks/?search=documentation" \
-  -b cookies.txt
-
-# Order by due date
-curl -X GET "http://localhost:8000/api/tasks/?ordering=due_date" \
-  -b cookies.txt
-
-# Filter overdue tasks
-curl -X GET "http://localhost:8000/api/tasks/?is_overdue=true" \
-  -b cookies.txt
-```
-
-### Refresh Token
-
-```bash
-curl -X POST http://localhost:8000/api/auth/refresh/ \
-  -b cookies.txt \
-  -c cookies.txt
-```
-
-### Logout
-
-```bash
-curl -X POST http://localhost:8000/api/auth/logout/ \
-  -b cookies.txt
-```
-
-### Get Task Statistics
-
-```bash
-curl -X GET http://localhost:8000/api/tasks/stats/ \
-  -b cookies.txt
-```
-
-**Response:**
-```json
-{
-  "total": 10,
-  "by_status": {
-    "todo": 5,
-    "in_progress": 3,
-    "done": 2
-  },
-  "by_priority": {
-    "low": 2,
-    "medium": 5,
-    "high": 3
-  },
-  "overdue": 1
-}
-```
-
-## Task Model
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | Integer | Auto-generated primary key |
-| title | String | Task title (required, max 255 chars) |
-| description | Text | Task description (optional) |
-| status | Choice | todo, in_progress, done (default: todo) |
-| priority | Choice | low, medium, high (default: medium) |
-| due_date | Date | Due date (optional) |
-| created_at | DateTime | Auto-set on creation |
-| updated_at | DateTime | Auto-updated on save |
-| user | ForeignKey | Owner of the task |
-
 ## Authentication
 
 ### Cookie-based Authentication (Recommended for Browsers)
@@ -313,22 +126,6 @@ For non-browser clients, use the Authorization header:
 
 ```
 Authorization: Bearer <access_token>
-```
-
-## Running Tests
-
-```bash
-# Run all tests
-python manage.py test
-
-# Run specific test class
-python manage.py test app.tests.TaskAPITests
-
-# Run specific test method
-python manage.py test app.tests.TaskAPITests.test_create_task
-
-# Run with verbosity
-python manage.py test -v 2
 ```
 
 ## Configuration
@@ -387,19 +184,3 @@ Alternative documentation:
 6. Set `AUTH_COOKIE_SECURE=True`
 7. Use environment variables for sensitive data
 8. Set up proper CORS settings
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Author
-
-Kunal Singh Dadhwal - 2025
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
