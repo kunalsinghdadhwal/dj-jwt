@@ -1,0 +1,194 @@
+"""
+Task Tracker Serializers
+
+This module defines serializers for User registration and Task operations.
+"""
+
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
+from .models import Task
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+
+    Handles creating new users with validated passwords.
+    """
+
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'},
+        help_text='User password (min 8 characters)'
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+        help_text='Confirm password'
+    )
+    email = serializers.EmailField(
+        required=True,
+        help_text='User email address'
+    )
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password', 'password_confirm']
+        extra_kwargs = {
+            'username': {'help_text': 'Unique username'},
+        }
+
+    def validate_email(self, value):
+        """Ensure email is unique."""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                'A user with this email already exists.'
+            )
+        return value
+
+    def validate_username(self, value):
+        """Ensure username is unique."""
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                'A user with this username already exists.'
+            )
+        return value
+
+    def validate(self, attrs):
+        """Validate that passwords match."""
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({
+                'password_confirm': 'Passwords do not match.'
+            })
+        return attrs
+
+    def create(self, validated_data):
+        """Create a new user with encrypted password."""
+        validated_data.pop('password_confirm')
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for reading user information.
+
+    Used for displaying user details in responses.
+    """
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'date_joined']
+        read_only_fields = ['id', 'date_joined']
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Task model.
+
+    Handles CRUD operations for tasks with validation.
+    """
+
+    user = UserSerializer(read_only=True)
+    is_overdue = serializers.BooleanField(read_only=True)
+    status_display = serializers.CharField(
+        source='get_status_display',
+        read_only=True
+    )
+    priority_display = serializers.CharField(
+        source='get_priority_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'title',
+            'description',
+            'status',
+            'status_display',
+            'priority',
+            'priority_display',
+            'due_date',
+            'is_overdue',
+            'created_at',
+            'updated_at',
+            'user',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def validate_title(self, value):
+        """Ensure title is not empty after stripping whitespace."""
+        if not value.strip():
+            raise serializers.ValidationError(
+                'Title cannot be empty or whitespace only.'
+            )
+        return value.strip()
+
+
+class TaskCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating tasks.
+
+    Simplified serializer for task creation with proper field handling.
+    """
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'title',
+            'description',
+            'status',
+            'priority',
+            'due_date',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_title(self, value):
+        """Ensure title is not empty after stripping whitespace."""
+        if not value.strip():
+            raise serializers.ValidationError(
+                'Title cannot be empty or whitespace only.'
+            )
+        return value.strip()
+
+    def create(self, validated_data):
+        """Create task and assign to current user."""
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class TaskListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for task lists.
+
+    Returns minimal data for better performance in list views.
+    """
+
+    is_overdue = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'title',
+            'status',
+            'priority',
+            'due_date',
+            'is_overdue',
+            'created_at',
+        ]
+        read_only_fields = fields
