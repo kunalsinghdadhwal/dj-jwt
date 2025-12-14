@@ -16,15 +16,6 @@ A production-ready RESTful API for managing tasks with JWT authentication stored
 - **API Documentation**: Interactive Scalar-powered API documentation
 - **Statistics**: Get task statistics by status and priority
 
-## Tech Stack
-
-- **Django 5.x**: Web framework
-- **Django REST Framework**: API toolkit
-- **djangorestframework-simplejwt**: JWT authentication with cookie support
-- **drf-spectacular**: OpenAPI 3 schema generation
-- **django-filter**: Advanced filtering
-- **SQLite**: Database (easily switchable to PostgreSQL)
-
 ## Installation
 
 ### Prerequisites
