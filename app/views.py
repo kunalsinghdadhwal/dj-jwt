@@ -418,24 +418,21 @@ class UserProfileView(generics.RetrieveAPIView):
 @extend_schema_view(
     list=extend_schema(
         summary='List all tasks',
-        description='''
-        Returns a paginated list of tasks owned by the authenticated user.
-
-        **Filtering:**
-        - `status`: Filter by status (todo, in_progress, done)
-        - `priority`: Filter by priority (low, medium, high)
-        - `due_date`: Filter by exact due date
-        - `due_date_before`: Tasks due on or before date
-        - `due_date_after`: Tasks due on or after date
-        - `is_overdue`: Filter overdue tasks (true/false)
-
-        **Searching:**
-        - `search`: Search in title and description
-
-        **Ordering:**
-        - `ordering`: Order by created_at, due_date, priority, status
-        - Prefix with `-` for descending (e.g., `-created_at`)
-        ''',
+        description=(
+            'Returns a paginated list of tasks owned by the authenticated user.\n\n'
+            '**Filtering:**\n'
+            '- `status`: Filter by status (todo, in_progress, done)\n'
+            '- `priority`: Filter by priority (low, medium, high)\n'
+            '- `due_date`: Filter by exact due date\n'
+            '- `due_date_before`: Tasks due on or before date\n'
+            '- `due_date_after`: Tasks due on or after date\n'
+            '- `is_overdue`: Filter overdue tasks (true/false)\n\n'
+            '**Searching:**\n'
+            '- `search`: Search in title and description\n\n'
+            '**Ordering:**\n'
+            '- `ordering`: Order by created_at, due_date, priority, status\n'
+            '- Prefix with `-` for descending (e.g., `-created_at`)'
+        ),
         parameters=[
             OpenApiParameter(
                 name='status',
